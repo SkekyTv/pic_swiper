@@ -33,7 +33,7 @@ final class SwipePageNotifierProvider
   SwipePageNotifier create() => SwipePageNotifier();
 }
 
-String _$swipePageNotifierHash() => r'f067987c16ad6408f5bad767e46d3f74a1aae6de';
+String _$swipePageNotifierHash() => r'26d0b932f3b4491f320b58d2b8b18bf770fd4d18';
 
 abstract class _$SwipePageNotifier extends $AsyncNotifier<SwipePageState> {
   FutureOr<SwipePageState> build();
