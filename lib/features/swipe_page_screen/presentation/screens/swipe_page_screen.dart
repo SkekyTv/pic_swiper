@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:photo_manager/photo_manager.dart';
 
+import '../../../../core/theme/theme.dart';
 import '../../domain/models/gallery_permission_denied_exception.dart';
 import '../notifiers/swipe_page_notifier.dart';
 
@@ -14,18 +15,20 @@ class SwipePageScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final asyncState = ref.watch(swipePageProvider);
     final notifier = ref.read(swipePageProvider.notifier);
+    final colorScheme = Theme.of(context).colorScheme;
+    final swipeColors = Theme.of(context).extension<SwipeActionColors>()!;
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: colorScheme.surface,
       body: SafeArea(
         child: asyncState.when(
           data: (state) {
             final photo = state.currentPhoto;
             if (photo == null) {
-              return const Center(
+              return Center(
                 child: Text(
                   'No more photos to review',
-                  style: TextStyle(color: Colors.white, fontSize: 18),
+                  style: TextStyle(color: colorScheme.onSurface, fontSize: 18),
                 ),
               );
             }
@@ -50,12 +53,12 @@ class SwipePageScreen extends ConsumerWidget {
                     children: [
                       _ActionButton(
                         icon: Icons.close,
-                        color: Colors.amber,
+                        color: swipeColors.delete,
                         onPressed: notifier.deleteCurrent,
                       ),
                       _ActionButton(
                         icon: Icons.favorite,
-                        color: Colors.redAccent,
+                        color: swipeColors.keep,
                         onPressed: notifier.keepCurrent,
                       ),
                     ],
@@ -64,9 +67,7 @@ class SwipePageScreen extends ConsumerWidget {
               ],
             );
           },
-          loading: () => const Center(
-            child: CircularProgressIndicator(color: Colors.white),
-          ),
+          loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, _) => _SwipePageError(
             error: error,
             onRetry: () => ref.invalidate(swipePageProvider),
@@ -172,9 +173,11 @@ class _SwipeablePhotoCardState extends State<_SwipeablePhotoCard>
                 builder: (context, snapshot) {
                   final bytes = snapshot.data;
                   if (bytes == null) {
-                    return const ColoredBox(
-                      color: Colors.white10,
-                      child: Center(child: CircularProgressIndicator()),
+                    return ColoredBox(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest,
+                      child: const Center(child: CircularProgressIndicator()),
                     );
                   }
                   return Image.memory(
@@ -244,7 +247,10 @@ class _SwipePageError extends StatelessWidget {
             Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.white, fontSize: 16),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
+                fontSize: 16,
+              ),
             ),
             const SizedBox(height: 16),
             ElevatedButton(onPressed: onRetry, child: const Text('Retry')),
