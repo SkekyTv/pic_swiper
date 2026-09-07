@@ -10,10 +10,13 @@ abstract class SwipePageState with _$SwipePageState {
   const factory SwipePageState({
     required List<AssetEntity> photos,
     required int currentIndex,
+    @Default(<String>{}) Set<String> pendingDeletionIds,
   }) = _SwipePageState;
 
   AssetEntity? get currentPhoto =>
       currentIndex < photos.length ? photos[currentIndex] : null;
 
   bool get isFinished => currentIndex >= photos.length;
+
+  int get pendingDeletionCount => pendingDeletionIds.length;
 }
