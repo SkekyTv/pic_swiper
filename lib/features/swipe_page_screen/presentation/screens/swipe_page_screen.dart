@@ -24,45 +24,57 @@ class SwipePageScreen extends ConsumerWidget {
         child: asyncState.when(
           data: (state) {
             final photo = state.currentPhoto;
-            if (photo == null) {
-              return Center(
-                child: Text(
-                  'No more photos to review',
-                  style: TextStyle(color: colorScheme.onSurface, fontSize: 18),
-                ),
-              );
-            }
 
             return Column(
               children: [
                 Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: _SwipeablePhotoCard(
-                      key: ValueKey(photo.id),
-                      photo: photo,
-                      onKeep: notifier.keepCurrent,
-                      onDelete: notifier.deleteCurrent,
+                  child: photo == null
+                      ? Center(
+                          child: Text(
+                            'No more photos to review',
+                            style: TextStyle(
+                              color: colorScheme.onSurface,
+                              fontSize: 18,
+                            ),
+                          ),
+                        )
+                      : Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: _SwipeablePhotoCard(
+                            key: ValueKey(photo.id),
+                            photo: photo,
+                            onKeep: notifier.keepCurrent,
+                            onDelete: notifier.markCurrentForDeletion,
+                          ),
+                        ),
+                ),
+                if (photo != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        _ActionButton(
+                          icon: Icons.close,
+                          color: swipeColors.delete,
+                          onPressed: notifier.markCurrentForDeletion,
+                        ),
+                        _ActionButton(
+                          icon: Icons.favorite,
+                          color: swipeColors.keep,
+                          onPressed: notifier.keepCurrent,
+                        ),
+                      ],
                     ),
                   ),
-                ),
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 32, top: 8),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _ActionButton(
-                        icon: Icons.close,
-                        color: swipeColors.delete,
-                        onPressed: notifier.deleteCurrent,
-                      ),
-                      _ActionButton(
-                        icon: Icons.favorite,
-                        color: swipeColors.keep,
-                        onPressed: notifier.keepCurrent,
-                      ),
-                    ],
-                  ),
+                  padding: const EdgeInsets.only(top: 12, bottom: 32),
+                  child: state.pendingDeletionCount > 0
+                      ? _PendingDeletionButton(
+                          count: state.pendingDeletionCount,
+                          onPressed: notifier.confirmPendingDeletions,
+                        )
+                      : const SizedBox(height: 40),
                 ),
               ],
             );
@@ -221,6 +233,32 @@ class _ActionButton extends StatelessWidget {
           child: Icon(icon, color: Colors.white, size: 32),
         ),
       ),
+    );
+  }
+}
+
+class _PendingDeletionButton extends StatelessWidget {
+  const _PendingDeletionButton({required this.count, required this.onPressed});
+
+  final int count;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final label = count == 1
+        ? '1 photo sélectionnée'
+        : '$count photos sélectionnées';
+
+    return TextButton(
+      style: TextButton.styleFrom(
+        backgroundColor: colorScheme.errorContainer,
+        foregroundColor: colorScheme.onErrorContainer,
+        shape: const StadiumBorder(),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      ),
+      onPressed: onPressed,
+      child: Text(label),
     );
   }
 }
