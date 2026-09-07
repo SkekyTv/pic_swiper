@@ -162,43 +162,47 @@ class _SwipeablePhotoCardState extends State<_SwipeablePhotoCard>
     _controller.forward(from: 0);
   }
 
+  double get _aspectRatio {
+    final height = widget.photo.orientatedHeight;
+    if (height <= 0) return 1;
+    return widget.photo.orientatedWidth / height;
+  }
+
   @override
   Widget build(BuildContext context) {
     final angle = _dragOffset.dx / 800;
 
-    return GestureDetector(
-      onPanUpdate: _onPanUpdate,
-      onPanEnd: _onPanEnd,
-      child: Transform.translate(
-        offset: _dragOffset,
-        child: Transform.rotate(
-          angle: angle,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: SizedBox(
-              width: double.infinity,
-              height: double.infinity,
-              child: FutureBuilder<Uint8List?>(
-                future: widget.photo.thumbnailDataWithSize(
-                  const ThumbnailSize(1080, 1080),
+    return Center(
+      child: GestureDetector(
+        onPanUpdate: _onPanUpdate,
+        onPanEnd: _onPanEnd,
+        child: Transform.translate(
+          offset: _dragOffset,
+          child: Transform.rotate(
+            angle: angle,
+            child: AspectRatio(
+              aspectRatio: _aspectRatio,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: FutureBuilder<Uint8List?>(
+                  future: widget.photo.thumbnailDataWithSize(
+                    const ThumbnailSize(1080, 1080),
+                  ),
+                  builder: (context, snapshot) {
+                    final bytes = snapshot.data;
+                    if (bytes == null) {
+                      return ColoredBox(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest,
+                        child: const Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                      );
+                    }
+                    return Image.memory(bytes, fit: BoxFit.cover);
+                  },
                 ),
-                builder: (context, snapshot) {
-                  final bytes = snapshot.data;
-                  if (bytes == null) {
-                    return ColoredBox(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.surfaceContainerHighest,
-                      child: const Center(child: CircularProgressIndicator()),
-                    );
-                  }
-                  return Image.memory(
-                    bytes,
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                    height: double.infinity,
-                  );
-                },
               ),
             ),
           ),
