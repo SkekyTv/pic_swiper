@@ -1,0 +1,256 @@
+import 'dart:typed_data';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:photo_manager/photo_manager.dart';
+
+import '../../domain/models/gallery_permission_denied_exception.dart';
+import '../notifiers/swipe_page_notifier.dart';
+
+class SwipePageScreen extends ConsumerWidget {
+  const SwipePageScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final asyncState = ref.watch(swipePageProvider);
+    final notifier = ref.read(swipePageProvider.notifier);
+
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: SafeArea(
+        child: asyncState.when(
+          data: (state) {
+            final photo = state.currentPhoto;
+            if (photo == null) {
+              return const Center(
+                child: Text(
+                  'No more photos to review',
+                  style: TextStyle(color: Colors.white, fontSize: 18),
+                ),
+              );
+            }
+
+            return Column(
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: _SwipeablePhotoCard(
+                      key: ValueKey(photo.id),
+                      photo: photo,
+                      onKeep: notifier.keepCurrent,
+                      onDelete: notifier.deleteCurrent,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 32, top: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _ActionButton(
+                        icon: Icons.close,
+                        color: Colors.amber,
+                        onPressed: notifier.deleteCurrent,
+                      ),
+                      _ActionButton(
+                        icon: Icons.favorite,
+                        color: Colors.redAccent,
+                        onPressed: notifier.keepCurrent,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          },
+          loading: () => const Center(
+            child: CircularProgressIndicator(color: Colors.white),
+          ),
+          error: (error, _) => _SwipePageError(
+            error: error,
+            onRetry: () => ref.invalidate(swipePageProvider),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SwipeablePhotoCard extends StatefulWidget {
+  const _SwipeablePhotoCard({
+    required super.key,
+    required this.photo,
+    required this.onKeep,
+    required this.onDelete,
+  });
+
+  final AssetEntity photo;
+  final VoidCallback onKeep;
+  final VoidCallback onDelete;
+
+  @override
+  State<_SwipeablePhotoCard> createState() => _SwipeablePhotoCardState();
+}
+
+class _SwipeablePhotoCardState extends State<_SwipeablePhotoCard>
+    with SingleTickerProviderStateMixin {
+  static const double _swipeThreshold = 120;
+
+  late final AnimationController _controller;
+  Animation<Offset>? _animation;
+  Offset _dragOffset = Offset.zero;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller =
+        AnimationController(
+          vsync: this,
+          duration: const Duration(milliseconds: 220),
+        )..addListener(() {
+          setState(() => _dragOffset = _animation!.value);
+        });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _onPanUpdate(DragUpdateDetails details) {
+    setState(() => _dragOffset += details.delta);
+  }
+
+  void _onPanEnd(DragEndDetails details) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+
+    if (_dragOffset.dx > _swipeThreshold) {
+      _animateAway(Offset(screenWidth, _dragOffset.dy), widget.onKeep);
+    } else if (_dragOffset.dx < -_swipeThreshold) {
+      _animateAway(Offset(-screenWidth, _dragOffset.dy), widget.onDelete);
+    } else {
+      _animateBack();
+    }
+  }
+
+  void _animateAway(Offset target, VoidCallback onComplete) {
+    _animation = Tween<Offset>(begin: _dragOffset, end: target).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+    );
+    _controller.forward(from: 0).whenComplete(onComplete);
+  }
+
+  void _animateBack() {
+    _animation = Tween<Offset>(begin: _dragOffset, end: Offset.zero).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+    );
+    _controller.forward(from: 0);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final angle = _dragOffset.dx / 800;
+
+    return GestureDetector(
+      onPanUpdate: _onPanUpdate,
+      onPanEnd: _onPanEnd,
+      child: Transform.translate(
+        offset: _dragOffset,
+        child: Transform.rotate(
+          angle: angle,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: SizedBox(
+              width: double.infinity,
+              height: double.infinity,
+              child: FutureBuilder<Uint8List?>(
+                future: widget.photo.thumbnailDataWithSize(
+                  const ThumbnailSize(1080, 1080),
+                ),
+                builder: (context, snapshot) {
+                  final bytes = snapshot.data;
+                  if (bytes == null) {
+                    return const ColoredBox(
+                      color: Colors.white10,
+                      child: Center(child: CircularProgressIndicator()),
+                    );
+                  }
+                  return Image.memory(
+                    bytes,
+                    fit: BoxFit.cover,
+                    width: double.infinity,
+                    height: double.infinity,
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ActionButton extends StatelessWidget {
+  const _ActionButton({
+    required this.icon,
+    required this.color,
+    required this.onPressed,
+  });
+
+  final IconData icon;
+  final Color color;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: color,
+      shape: const CircleBorder(),
+      elevation: 4,
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onPressed,
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Icon(icon, color: Colors.white, size: 32),
+        ),
+      ),
+    );
+  }
+}
+
+class _SwipePageError extends StatelessWidget {
+  const _SwipePageError({required this.error, required this.onRetry});
+
+  final Object error;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final message = error is GalleryPermissionDeniedException
+        ? 'Photo library access is required to use pic-swiper.\n'
+              'Please grant permission in Settings.'
+        : 'Something went wrong while loading your photos.';
+
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.white, fontSize: 16),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(onPressed: onRetry, child: const Text('Retry')),
+          ],
+        ),
+      ),
+    );
+  }
+}
