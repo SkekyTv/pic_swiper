@@ -1,4 +1,4 @@
-package com.example.pic_swiper
+package com.skeky.pic_swiper
 
 import io.flutter.embedding.android.FlutterActivity
 
