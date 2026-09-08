@@ -1,0 +1,74 @@
+name: Build and release
+
+# Triggers on every merge to main. Android is built, signed with the debug
+# key (no release keystore exists yet - see android/app/build.gradle.kts)
+# and attached to a GitHub Release. iOS is only compiled unsigned
+# (--no-codesign) to catch build breakage; it is not published anywhere
+# because there is no Apple signing/distribution setup in this repo yet.
+#
+# TODO once real distribution is wanted:
+#   - Android: add a release keystore + key.properties via repo secrets,
+#     wire signingConfigs in android/app/build.gradle.kts, and push the
+#     .aab to Play Console (or upload both artifacts to Firebase App
+#     Distribution) instead of/alongside the GitHub Release.
+#   - iOS: run on macos-latest with Apple certificates/provisioning
+#     profiles (or an App Store Connect API key) to export a signed .ipa
+#     and upload it to TestFlight/Firebase App Distribution.
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.44.8"
+          channel: "stable"
+          cache: true
+
+      - run: flutter pub get
+
+      - run: dart run build_runner build --delete-conflicting-outputs
+
+      - run: flutter analyze
+
+      - run: flutter test
+
+      - run: flutter build apk --release
+
+      - run: flutter build appbundle --release
+
+      - id: pubspec
+        run: echo "version=$(grep '^version:' pubspec.yaml | sed 's/version: //')" >> "$GITHUB_OUTPUT"
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.pubspec.outputs.version }}-${{ github.run_number }}
+          name: v${{ steps.pubspec.outputs.version }} (build ${{ github.run_number }})
+          files: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/bundle/release/app-release.aab
+
+  build-ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.44.8"
+          channel: "stable"
+          cache: true
+
+      - run: flutter pub get
+
+      - run: dart run build_runner build --delete-conflicting-outputs
+
+      - run: flutter build ios --release --no-codesign
