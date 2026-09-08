@@ -2,24 +2,24 @@ name: Build and release
 
 # Triggers on every merge to main. Android is built, signed with the debug
 # key (no release keystore exists yet - see android/app/build.gradle.kts)
-# and attached to a GitHub Release. iOS is only compiled unsigned
-# (--no-codesign) to catch build breakage; it is not published anywhere
-# because there is no Apple signing/distribution setup in this repo yet.
+# and pushed to Firebase App Distribution's "testers" group. iOS is only
+# compiled unsigned (--no-codesign) to catch build breakage; it is not
+# distributed anywhere because there is no Apple signing setup in this
+# repo yet (distributing to a physical iPhone requires a paid Apple
+# Developer Program membership regardless of distribution channel).
 #
-# TODO once real distribution is wanted:
-#   - Android: add a release keystore + key.properties via repo secrets,
-#     wire signingConfigs in android/app/build.gradle.kts, and push the
-#     .aab to Play Console (or upload both artifacts to Firebase App
-#     Distribution) instead of/alongside the GitHub Release.
+# Required repo secrets (see README/PR description for setup steps):
+#   FIREBASE_ANDROID_APP_ID      - Firebase console > Project settings > Your apps
+#   FIREBASE_SERVICE_ACCOUNT     - JSON key for a service account with the
+#                                   "Firebase App Distribution Admin" role
+#
+# TODO once an Apple Developer account is available:
 #   - iOS: run on macos-latest with Apple certificates/provisioning
 #     profiles (or an App Store Connect API key) to export a signed .ipa
-#     and upload it to TestFlight/Firebase App Distribution.
+#     and upload it to Firebase App Distribution / TestFlight.
 on:
   push:
     branches: [main]
-
-permissions:
-  contents: write
 
 jobs:
   build-android:
@@ -43,18 +43,17 @@ jobs:
 
       - run: flutter build apk --release
 
-      - run: flutter build appbundle --release
-
       - id: pubspec
-        run: echo "version=$(grep '^version:' pubspec.yaml | sed 's/version: //')" >> "$GITHUB_OUTPUT"
+        run: |
+          echo "version=$(grep '^version:' pubspec.yaml | sed 's/version: //')" >> "$GITHUB_OUTPUT"
 
-      - uses: softprops/action-gh-release@v2
+      - uses: wzieba/Firebase-Distribution-Github-Action@v1.7.1
         with:
-          tag_name: v${{ steps.pubspec.outputs.version }}-${{ github.run_number }}
-          name: v${{ steps.pubspec.outputs.version }} (build ${{ github.run_number }})
-          files: |
-            build/app/outputs/flutter-apk/app-release.apk
-            build/app/outputs/bundle/release/app-release.aab
+          appId: ${{ secrets.FIREBASE_ANDROID_APP_ID }}
+          serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          groups: testers
+          file: build/app/outputs/flutter-apk/app-release.apk
+          releaseNotes: "v${{ steps.pubspec.outputs.version }} (build ${{ github.run_number }}) - ${{ github.sha }}"
 
   build-ios:
     runs-on: macos-latest
