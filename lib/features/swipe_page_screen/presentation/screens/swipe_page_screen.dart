@@ -7,6 +7,7 @@ import 'package:photo_manager/photo_manager.dart';
 import '../../../../core/theme/theme.dart';
 import '../../domain/models/gallery_permission_denied_exception.dart';
 import '../notifiers/swipe_page_notifier.dart';
+import 'loading_screen.dart';
 
 class SwipePageScreen extends ConsumerWidget {
   const SwipePageScreen({super.key});
@@ -79,7 +80,7 @@ class SwipePageScreen extends ConsumerWidget {
               ],
             );
           },
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const LoadingScreen(),
           error: (error, _) => _SwipePageError(
             error: error,
             onRetry: () => ref.invalidate(swipePageProvider),
