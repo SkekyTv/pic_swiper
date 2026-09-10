@@ -1,4 +1,3 @@
-import 'package:photo_manager/photo_manager.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../data/repositories/gallery_repository.dart';
@@ -31,18 +30,47 @@ class SwipePageNotifier extends _$SwipePageNotifier {
     );
   }
 
-  Future<void> deleteCurrent() async {
+  void markCurrentForDeletion() {
     final current = state.value;
     if (current == null || current.isFinished) return;
 
     final photo = current.currentPhoto;
     if (photo == null) return;
 
-    final repository = ref.read(galleryRepositoryProvider);
-    await repository.deletePhoto(photo);
+    state = AsyncData(
+      current.copyWith(
+        currentIndex: current.currentIndex + 1,
+        pendingDeletionIds: {...current.pendingDeletionIds, photo.id},
+      ),
+    );
+  }
 
-    final updatedPhotos = List<AssetEntity>.from(current.photos)
-      ..removeAt(current.currentIndex);
-    state = AsyncData(current.copyWith(photos: updatedPhotos));
+  Future<void> confirmPendingDeletions() async {
+    final current = state.value;
+    if (current == null || current.pendingDeletionIds.isEmpty) return;
+
+    final toDelete = current.photos
+        .where((photo) => current.pendingDeletionIds.contains(photo.id))
+        .toList();
+
+    final repository = ref.read(galleryRepositoryProvider);
+    await repository.deletePhotos(toDelete);
+
+    final removedBeforeCurrent = current.photos
+        .take(current.currentIndex)
+        .where((photo) => current.pendingDeletionIds.contains(photo.id))
+        .length;
+
+    final updatedPhotos = current.photos
+        .where((photo) => !current.pendingDeletionIds.contains(photo.id))
+        .toList();
+
+    state = AsyncData(
+      current.copyWith(
+        photos: updatedPhotos,
+        currentIndex: current.currentIndex - removedBeforeCurrent,
+        pendingDeletionIds: const {},
+      ),
+    );
   }
 }

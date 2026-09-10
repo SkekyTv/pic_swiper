@@ -8,7 +8,7 @@ abstract interface class GalleryRepository {
 
   Future<List<AssetEntity>> fetchPhotos();
 
-  Future<void> deletePhoto(AssetEntity asset);
+  Future<void> deletePhotos(List<AssetEntity> assets);
 }
 
 class PhotoManagerGalleryRepository implements GalleryRepository {
@@ -32,8 +32,11 @@ class PhotoManagerGalleryRepository implements GalleryRepository {
   }
 
   @override
-  Future<void> deletePhoto(AssetEntity asset) async {
-    await PhotoManager.editor.deleteWithIds([asset.id]);
+  Future<void> deletePhotos(List<AssetEntity> assets) async {
+    if (assets.isEmpty) return;
+    await PhotoManager.editor.deleteWithIds(
+      assets.map((asset) => asset.id).toList(),
+    );
   }
 }
 

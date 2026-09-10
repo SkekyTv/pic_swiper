@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Wipes the photo gallery on a connected Android device/emulator and injects
-# a fixed set of 12 sample photos, so the swipe screen always starts from a
-# known, reproducible state.
+# a fixed set of 18 sample photos (12 portrait + 6 landscape), so the swipe
+# screen always starts from a known, reproducible state.
 #
 # Usage: tool/seed_gallery/seed_gallery.sh [device_id]
 #   device_id  optional adb device id (see `adb devices`). Defaults to the
@@ -36,12 +36,14 @@ fi
 
 adb() { command "$ADB" "${ADB_ARGS[@]}" "$@"; }
 
+PHOTO_COUNT=$(find "$PHOTOS_DIR" -type f -name '*.png' | wc -l | tr -d ' ')
+
 echo "Wiping gallery..."
 adb shell content delete --uri content://media/external/images/media >/dev/null 2>&1 || true
 adb shell rm -rf /sdcard/DCIM/Camera /sdcard/Pictures >/dev/null
 adb shell mkdir -p "$DEVICE_DIR"
 
-echo "Pushing 12 sample photos..."
+echo "Pushing $PHOTO_COUNT sample photos..."
 adb push "$PHOTOS_DIR"/. "$DEVICE_DIR"/ >/dev/null
 
 echo "Scanning media..."
@@ -51,4 +53,4 @@ for f in $(adb shell ls "$DEVICE_DIR" | tr -d '\r'); do
     -d "file://$DEVICE_DIR/$f" >/dev/null
 done
 
-echo "Done. Gallery now has 12 sample photos."
+echo "Done. Gallery now has $PHOTO_COUNT sample photos."
