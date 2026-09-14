@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:photo_manager/photo_manager.dart';
 
 import '../../../../core/theme/theme.dart';
@@ -28,6 +29,19 @@ class SwipePageScreen extends ConsumerWidget {
 
             return Column(
               children: [
+                Align(
+                  alignment: Alignment.topRight,
+                  child: _OptionsMenuButton(
+                    isDateFiltered: state.isDateFiltered,
+                    onFilterByDate: () => _pickDateRange(
+                      context,
+                      notifier,
+                      state.filterStartDate,
+                      state.filterEndDate,
+                    ),
+                    onClearFilter: notifier.clearDateFilter,
+                  ),
+                ),
                 Expanded(
                   child: photo == null
                       ? Center(
@@ -73,7 +87,10 @@ class SwipePageScreen extends ConsumerWidget {
                   child: state.pendingDeletionCount > 0
                       ? _PendingDeletionButton(
                           count: state.pendingDeletionCount,
-                          onPressed: notifier.confirmPendingDeletions,
+                          onPressed: () => context.pushNamed(
+                            'recap',
+                            extra: state.pendingDeletionPhotos,
+                          ),
                         )
                       : const SizedBox(height: 40),
                 ),
@@ -87,6 +104,89 @@ class SwipePageScreen extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Future<void> _pickDateRange(
+    BuildContext context,
+    SwipePageNotifier notifier,
+    DateTime? currentStart,
+    DateTime? currentEnd,
+  ) async {
+    final now = DateTime.now();
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2000),
+      lastDate: now,
+      initialDateRange: DateTimeRange(
+        start: currentStart ?? now,
+        end: currentEnd ?? now,
+      ),
+    );
+    if (picked == null) return;
+
+    await notifier.applyDateFilter(
+      startDate: picked.start,
+      endDate: DateTime(
+        picked.end.year,
+        picked.end.month,
+        picked.end.day,
+        23,
+        59,
+        59,
+      ),
+    );
+  }
+}
+
+enum _SwipeMenuAction { filterByDate, clearFilter }
+
+class _OptionsMenuButton extends StatelessWidget {
+  const _OptionsMenuButton({
+    required this.isDateFiltered,
+    required this.onFilterByDate,
+    required this.onClearFilter,
+  });
+
+  final bool isDateFiltered;
+  final VoidCallback onFilterByDate;
+  final VoidCallback onClearFilter;
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<_SwipeMenuAction>(
+      icon: const Icon(Icons.more_vert),
+      onSelected: (action) {
+        switch (action) {
+          case _SwipeMenuAction.filterByDate:
+            onFilterByDate();
+          case _SwipeMenuAction.clearFilter:
+            onClearFilter();
+        }
+      },
+      itemBuilder: (context) => [
+        const PopupMenuItem(
+          value: _SwipeMenuAction.filterByDate,
+          child: Row(
+            children: [
+              Icon(Icons.date_range, size: 20),
+              SizedBox(width: 12),
+              Text('Filtrer par date'),
+            ],
+          ),
+        ),
+        if (isDateFiltered)
+          const PopupMenuItem(
+            value: _SwipeMenuAction.clearFilter,
+            child: Row(
+              children: [
+                Icon(Icons.filter_alt_off, size: 20),
+                SizedBox(width: 12),
+                Text('Effacer le filtre'),
+              ],
+            ),
+          ),
+      ],
     );
   }
 }

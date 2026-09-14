@@ -6,7 +6,10 @@ part 'gallery_repository.g.dart';
 abstract interface class GalleryRepository {
   Future<bool> requestPermission();
 
-  Future<List<AssetEntity>> fetchPhotos();
+  Future<List<AssetEntity>> fetchPhotos({
+    DateTime? startDate,
+    DateTime? endDate,
+  });
 
   Future<void> deletePhotos(List<AssetEntity> assets);
 }
@@ -19,10 +22,21 @@ class PhotoManagerGalleryRepository implements GalleryRepository {
   }
 
   @override
-  Future<List<AssetEntity>> fetchPhotos() async {
+  Future<List<AssetEntity>> fetchPhotos({
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    final filterOption = FilterOptionGroup(
+      createTimeCond: DateTimeCond(
+        min: startDate ?? DateTimeCond.zero,
+        max: endDate ?? DateTime.now(),
+      ),
+    );
+
     final albums = await PhotoManager.getAssetPathList(
       type: RequestType.image,
       onlyAll: true,
+      filterOption: filterOption,
     );
     if (albums.isEmpty) return [];
 
