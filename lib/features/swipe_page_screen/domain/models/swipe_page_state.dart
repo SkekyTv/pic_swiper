@@ -19,4 +19,8 @@ abstract class SwipePageState with _$SwipePageState {
   bool get isFinished => currentIndex >= photos.length;
 
   int get pendingDeletionCount => pendingDeletionIds.length;
+
+  List<AssetEntity> get pendingDeletionPhotos => photos
+      .where((photo) => pendingDeletionIds.contains(photo.id))
+      .toList();
 }

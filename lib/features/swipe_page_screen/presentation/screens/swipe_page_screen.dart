@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:photo_manager/photo_manager.dart';
 
 import '../../../../core/theme/theme.dart';
@@ -73,7 +74,10 @@ class SwipePageScreen extends ConsumerWidget {
                   child: state.pendingDeletionCount > 0
                       ? _PendingDeletionButton(
                           count: state.pendingDeletionCount,
-                          onPressed: notifier.confirmPendingDeletions,
+                          onPressed: () => context.pushNamed(
+                            'recap',
+                            extra: state.pendingDeletionPhotos,
+                          ),
                         )
                       : const SizedBox(height: 40),
                 ),

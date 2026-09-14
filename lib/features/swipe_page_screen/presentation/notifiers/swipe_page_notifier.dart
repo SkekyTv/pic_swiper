@@ -45,6 +45,18 @@ class SwipePageNotifier extends _$SwipePageNotifier {
     );
   }
 
+  void toggleDeletionMark(String photoId) {
+    final current = state.value;
+    if (current == null) return;
+
+    final updatedIds = {...current.pendingDeletionIds};
+    if (!updatedIds.remove(photoId)) {
+      updatedIds.add(photoId);
+    }
+
+    state = AsyncData(current.copyWith(pendingDeletionIds: updatedIds));
+  }
+
   Future<void> confirmPendingDeletions() async {
     final current = state.value;
     if (current == null || current.pendingDeletionIds.isEmpty) return;
