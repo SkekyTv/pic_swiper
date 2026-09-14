@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SwipePageState {
 
- List<AssetEntity> get photos; int get currentIndex; Set<String> get pendingDeletionIds;
+ List<AssetEntity> get photos; int get currentIndex; Set<String> get pendingDeletionIds; DateTime? get filterStartDate; DateTime? get filterEndDate;
 /// Create a copy of SwipePageState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -26,16 +26,16 @@ $SwipePageStateCopyWith<SwipePageState> get copyWith => _$SwipePageStateCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SwipePageState&&const DeepCollectionEquality().equals(other.photos, photos)&&(identical(other.currentIndex, currentIndex) || other.currentIndex == currentIndex)&&const DeepCollectionEquality().equals(other.pendingDeletionIds, pendingDeletionIds));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SwipePageState&&const DeepCollectionEquality().equals(other.photos, photos)&&(identical(other.currentIndex, currentIndex) || other.currentIndex == currentIndex)&&const DeepCollectionEquality().equals(other.pendingDeletionIds, pendingDeletionIds)&&(identical(other.filterStartDate, filterStartDate) || other.filterStartDate == filterStartDate)&&(identical(other.filterEndDate, filterEndDate) || other.filterEndDate == filterEndDate));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(photos),currentIndex,const DeepCollectionEquality().hash(pendingDeletionIds));
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(photos),currentIndex,const DeepCollectionEquality().hash(pendingDeletionIds),filterStartDate,filterEndDate);
 
 @override
 String toString() {
-  return 'SwipePageState(photos: $photos, currentIndex: $currentIndex, pendingDeletionIds: $pendingDeletionIds)';
+  return 'SwipePageState(photos: $photos, currentIndex: $currentIndex, pendingDeletionIds: $pendingDeletionIds, filterStartDate: $filterStartDate, filterEndDate: $filterEndDate)';
 }
 
 
@@ -46,7 +46,7 @@ abstract mixin class $SwipePageStateCopyWith<$Res>  {
   factory $SwipePageStateCopyWith(SwipePageState value, $Res Function(SwipePageState) _then) = _$SwipePageStateCopyWithImpl;
 @useResult
 $Res call({
- List<AssetEntity> photos, int currentIndex, Set<String> pendingDeletionIds
+ List<AssetEntity> photos, int currentIndex, Set<String> pendingDeletionIds, DateTime? filterStartDate, DateTime? filterEndDate
 });
 
 
@@ -63,12 +63,14 @@ class _$SwipePageStateCopyWithImpl<$Res>
 
 /// Create a copy of SwipePageState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? photos = null,Object? currentIndex = null,Object? pendingDeletionIds = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? photos = null,Object? currentIndex = null,Object? pendingDeletionIds = null,Object? filterStartDate = freezed,Object? filterEndDate = freezed,}) {
   return _then(SwipePageState(
 photos: null == photos ? _self.photos : photos // ignore: cast_nullable_to_non_nullable
 as List<AssetEntity>,currentIndex: null == currentIndex ? _self.currentIndex : currentIndex // ignore: cast_nullable_to_non_nullable
 as int,pendingDeletionIds: null == pendingDeletionIds ? _self.pendingDeletionIds : pendingDeletionIds // ignore: cast_nullable_to_non_nullable
-as Set<String>,
+as Set<String>,filterStartDate: freezed == filterStartDate ? _self.filterStartDate : filterStartDate // ignore: cast_nullable_to_non_nullable
+as DateTime?,filterEndDate: freezed == filterEndDate ? _self.filterEndDate : filterEndDate // ignore: cast_nullable_to_non_nullable
+as DateTime?,
   ));
 }
 
@@ -153,10 +155,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<AssetEntity> photos,  int currentIndex,  Set<String> pendingDeletionIds)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( List<AssetEntity> photos,  int currentIndex,  Set<String> pendingDeletionIds,  DateTime? filterStartDate,  DateTime? filterEndDate)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SwipePageState() when $default != null:
-return $default(_that.photos,_that.currentIndex,_that.pendingDeletionIds);case _:
+return $default(_that.photos,_that.currentIndex,_that.pendingDeletionIds,_that.filterStartDate,_that.filterEndDate);case _:
   return orElse();
 
 }
@@ -174,10 +176,10 @@ return $default(_that.photos,_that.currentIndex,_that.pendingDeletionIds);case _
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<AssetEntity> photos,  int currentIndex,  Set<String> pendingDeletionIds)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( List<AssetEntity> photos,  int currentIndex,  Set<String> pendingDeletionIds,  DateTime? filterStartDate,  DateTime? filterEndDate)  $default,) {final _that = this;
 switch (_that) {
 case _SwipePageState():
-return $default(_that.photos,_that.currentIndex,_that.pendingDeletionIds);case _:
+return $default(_that.photos,_that.currentIndex,_that.pendingDeletionIds,_that.filterStartDate,_that.filterEndDate);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -194,10 +196,10 @@ return $default(_that.photos,_that.currentIndex,_that.pendingDeletionIds);case _
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<AssetEntity> photos,  int currentIndex,  Set<String> pendingDeletionIds)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( List<AssetEntity> photos,  int currentIndex,  Set<String> pendingDeletionIds,  DateTime? filterStartDate,  DateTime? filterEndDate)?  $default,) {final _that = this;
 switch (_that) {
 case _SwipePageState() when $default != null:
-return $default(_that.photos,_that.currentIndex,_that.pendingDeletionIds);case _:
+return $default(_that.photos,_that.currentIndex,_that.pendingDeletionIds,_that.filterStartDate,_that.filterEndDate);case _:
   return null;
 
 }
@@ -209,7 +211,7 @@ return $default(_that.photos,_that.currentIndex,_that.pendingDeletionIds);case _
 
 
 class _SwipePageState extends SwipePageState {
-  const _SwipePageState({required  List<AssetEntity> photos, required this.currentIndex,  Set<String> pendingDeletionIds = const <String>{}}): _photos = photos,_pendingDeletionIds = pendingDeletionIds,super._();
+  const _SwipePageState({required  List<AssetEntity> photos, required this.currentIndex,  Set<String> pendingDeletionIds = const <String>{}, this.filterStartDate, this.filterEndDate}): _photos = photos,_pendingDeletionIds = pendingDeletionIds,super._();
   
 
  final  List<AssetEntity> _photos;
@@ -227,6 +229,8 @@ class _SwipePageState extends SwipePageState {
   return EqualUnmodifiableSetView(_pendingDeletionIds);
 }
 
+@override final  DateTime? filterStartDate;
+@override final  DateTime? filterEndDate;
 
 /// Create a copy of SwipePageState
 /// with the given fields replaced by the non-null parameter values.
@@ -238,16 +242,16 @@ _$SwipePageStateCopyWith<_SwipePageState> get copyWith => __$SwipePageStateCopyW
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SwipePageState&&const DeepCollectionEquality().equals(other._photos, _photos)&&(identical(other.currentIndex, currentIndex) || other.currentIndex == currentIndex)&&const DeepCollectionEquality().equals(other._pendingDeletionIds, _pendingDeletionIds));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SwipePageState&&const DeepCollectionEquality().equals(other._photos, _photos)&&(identical(other.currentIndex, currentIndex) || other.currentIndex == currentIndex)&&const DeepCollectionEquality().equals(other._pendingDeletionIds, _pendingDeletionIds)&&(identical(other.filterStartDate, filterStartDate) || other.filterStartDate == filterStartDate)&&(identical(other.filterEndDate, filterEndDate) || other.filterEndDate == filterEndDate));
 }
 
 
 @override
-int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_photos),currentIndex,const DeepCollectionEquality().hash(_pendingDeletionIds));
+int get hashCode => Object.hash(runtimeType,const DeepCollectionEquality().hash(_photos),currentIndex,const DeepCollectionEquality().hash(_pendingDeletionIds),filterStartDate,filterEndDate);
 
 @override
 String toString() {
-  return 'SwipePageState(photos: $photos, currentIndex: $currentIndex, pendingDeletionIds: $pendingDeletionIds)';
+  return 'SwipePageState(photos: $photos, currentIndex: $currentIndex, pendingDeletionIds: $pendingDeletionIds, filterStartDate: $filterStartDate, filterEndDate: $filterEndDate)';
 }
 
 
@@ -258,7 +262,7 @@ abstract mixin class _$SwipePageStateCopyWith<$Res> implements $SwipePageStateCo
   factory _$SwipePageStateCopyWith(_SwipePageState value, $Res Function(_SwipePageState) _then) = __$SwipePageStateCopyWithImpl;
 @override @useResult
 $Res call({
- List<AssetEntity> photos, int currentIndex, Set<String> pendingDeletionIds
+ List<AssetEntity> photos, int currentIndex, Set<String> pendingDeletionIds, DateTime? filterStartDate, DateTime? filterEndDate
 });
 
 
@@ -275,12 +279,14 @@ class __$SwipePageStateCopyWithImpl<$Res>
 
 /// Create a copy of SwipePageState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? photos = null,Object? currentIndex = null,Object? pendingDeletionIds = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? photos = null,Object? currentIndex = null,Object? pendingDeletionIds = null,Object? filterStartDate = freezed,Object? filterEndDate = freezed,}) {
   return _then(_SwipePageState(
 photos: null == photos ? _self._photos : photos // ignore: cast_nullable_to_non_nullable
 as List<AssetEntity>,currentIndex: null == currentIndex ? _self.currentIndex : currentIndex // ignore: cast_nullable_to_non_nullable
 as int,pendingDeletionIds: null == pendingDeletionIds ? _self._pendingDeletionIds : pendingDeletionIds // ignore: cast_nullable_to_non_nullable
-as Set<String>,
+as Set<String>,filterStartDate: freezed == filterStartDate ? _self.filterStartDate : filterStartDate // ignore: cast_nullable_to_non_nullable
+as DateTime?,filterEndDate: freezed == filterEndDate ? _self.filterEndDate : filterEndDate // ignore: cast_nullable_to_non_nullable
+as DateTime?,
   ));
 }
 

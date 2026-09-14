@@ -11,12 +11,16 @@ abstract class SwipePageState with _$SwipePageState {
     required List<AssetEntity> photos,
     required int currentIndex,
     @Default(<String>{}) Set<String> pendingDeletionIds,
+    DateTime? filterStartDate,
+    DateTime? filterEndDate,
   }) = _SwipePageState;
 
   AssetEntity? get currentPhoto =>
       currentIndex < photos.length ? photos[currentIndex] : null;
 
   bool get isFinished => currentIndex >= photos.length;
+
+  bool get isDateFiltered => filterStartDate != null || filterEndDate != null;
 
   int get pendingDeletionCount => pendingDeletionIds.length;
 

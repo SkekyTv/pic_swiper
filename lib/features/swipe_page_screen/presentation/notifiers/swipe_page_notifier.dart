@@ -21,6 +21,32 @@ class SwipePageNotifier extends _$SwipePageNotifier {
     return SwipePageState(photos: photos, currentIndex: 0);
   }
 
+  Future<void> applyDateFilter({DateTime? startDate, DateTime? endDate}) {
+    return _refetchWithFilter(startDate: startDate, endDate: endDate);
+  }
+
+  Future<void> clearDateFilter() => _refetchWithFilter();
+
+  Future<void> _refetchWithFilter({
+    DateTime? startDate,
+    DateTime? endDate,
+  }) async {
+    final repository = ref.read(galleryRepositoryProvider);
+    final photos = await repository.fetchPhotos(
+      startDate: startDate,
+      endDate: endDate,
+    );
+
+    state = AsyncData(
+      SwipePageState(
+        photos: photos,
+        currentIndex: 0,
+        filterStartDate: startDate,
+        filterEndDate: endDate,
+      ),
+    );
+  }
+
   void keepCurrent() {
     final current = state.value;
     if (current == null || current.isFinished) return;
