@@ -25,6 +25,11 @@ class SwipePageNotifier extends _$SwipePageNotifier {
     return _refetchWithFilter(startDate: startDate, endDate: endDate);
   }
 
+  Future<List<DateTime>> fetchAvailableMonths() {
+    final repository = ref.read(galleryRepositoryProvider);
+    return repository.fetchAvailableMonths();
+  }
+
   Future<void> clearDateFilter() => _refetchWithFilter();
 
   Future<void> _refetchWithFilter({
@@ -51,9 +56,7 @@ class SwipePageNotifier extends _$SwipePageNotifier {
     final current = state.value;
     if (current == null || current.isFinished) return;
 
-    state = AsyncData(
-      current.copyWith(currentIndex: current.currentIndex + 1),
-    );
+    state = AsyncData(current.copyWith(currentIndex: current.currentIndex + 1));
   }
 
   void markCurrentForDeletion() {

@@ -11,6 +11,10 @@ abstract interface class GalleryRepository {
     DateTime? endDate,
   });
 
+  /// Returns the distinct months (as the first day of each month) for which
+  /// at least one photo exists, sorted chronologically.
+  Future<List<DateTime>> fetchAvailableMonths();
+
   Future<void> deletePhotos(List<AssetEntity> assets);
 }
 
@@ -43,6 +47,18 @@ class PhotoManagerGalleryRepository implements GalleryRepository {
     final recentAlbum = albums.first;
     final count = await recentAlbum.assetCountAsync;
     return recentAlbum.getAssetListRange(start: 0, end: count);
+  }
+
+  @override
+  Future<List<DateTime>> fetchAvailableMonths() async {
+    final photos = await fetchPhotos();
+
+    final months = <DateTime>{
+      for (final photo in photos)
+        DateTime(photo.createDateTime.year, photo.createDateTime.month),
+    };
+
+    return months.toList()..sort();
   }
 
   @override
