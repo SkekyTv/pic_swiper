@@ -8,6 +8,7 @@ import 'package:photo_manager/photo_manager.dart';
 import '../../../../core/theme/theme.dart';
 import '../../domain/models/gallery_permission_denied_exception.dart';
 import '../notifiers/swipe_page_notifier.dart';
+import '../widgets/month_year_picker.dart';
 import 'loading_screen.dart';
 
 class SwipePageScreen extends ConsumerWidget {
@@ -37,7 +38,6 @@ class SwipePageScreen extends ConsumerWidget {
                       context,
                       notifier,
                       state.filterStartDate,
-                      state.filterEndDate,
                     ),
                     onClearFilter: notifier.clearDateFilter,
                   ),
@@ -111,30 +111,27 @@ class SwipePageScreen extends ConsumerWidget {
     BuildContext context,
     SwipePageNotifier notifier,
     DateTime? currentStart,
-    DateTime? currentEnd,
   ) async {
-    final now = DateTime.now();
-    final picked = await showDateRangePicker(
-      context: context,
-      firstDate: DateTime(2000),
-      lastDate: now,
-      initialDateRange: DateTimeRange(
-        start: currentStart ?? now,
-        end: currentEnd ?? now,
-      ),
+    final availableMonths = await notifier.fetchAvailableMonths();
+    if (availableMonths.isEmpty) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Aucune photo à filtrer par date')),
+      );
+      return;
+    }
+
+    if (!context.mounted) return;
+    final picked = await MonthYearPicker.show(
+      context,
+      availableMonths: availableMonths,
+      initialMonth: currentStart,
     );
     if (picked == null) return;
 
     await notifier.applyDateFilter(
       startDate: picked.start,
-      endDate: DateTime(
-        picked.end.year,
-        picked.end.month,
-        picked.end.day,
-        23,
-        59,
-        59,
-      ),
+      endDate: picked.end,
     );
   }
 }
@@ -250,16 +247,18 @@ class _SwipeablePhotoCardState extends State<_SwipeablePhotoCard>
   }
 
   void _animateAway(Offset target, VoidCallback onComplete) {
-    _animation = Tween<Offset>(begin: _dragOffset, end: target).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-    );
+    _animation = Tween<Offset>(
+      begin: _dragOffset,
+      end: target,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
     _controller.forward(from: 0).whenComplete(onComplete);
   }
 
   void _animateBack() {
-    _animation = Tween<Offset>(begin: _dragOffset, end: Offset.zero).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-    );
+    _animation = Tween<Offset>(
+      begin: _dragOffset,
+      end: Offset.zero,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut));
     _controller.forward(from: 0);
   }
 
@@ -296,9 +295,7 @@ class _SwipeablePhotoCardState extends State<_SwipeablePhotoCard>
                         color: Theme.of(
                           context,
                         ).colorScheme.surfaceContainerHighest,
-                        child: const Center(
-                          child: CircularProgressIndicator(),
-                        ),
+                        child: const Center(child: CircularProgressIndicator()),
                       );
                     }
                     return Image.memory(bytes, fit: BoxFit.cover);

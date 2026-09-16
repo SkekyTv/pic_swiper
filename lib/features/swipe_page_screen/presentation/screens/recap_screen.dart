@@ -125,9 +125,7 @@ class _RecapPhotoTile extends StatelessWidget {
               builder: (context, snapshot) {
                 final bytes = snapshot.data;
                 if (bytes == null) {
-                  return ColoredBox(
-                    color: colorScheme.surfaceContainerHighest,
-                  );
+                  return ColoredBox(color: colorScheme.surfaceContainerHighest);
                 }
                 return Image.memory(bytes, fit: BoxFit.cover);
               },
